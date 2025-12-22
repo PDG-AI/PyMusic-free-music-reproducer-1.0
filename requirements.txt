@@ -1,0 +1,15 @@
+# Core dependencies
+pygame==2.5.2
+pyperclip==1.8.2
+yt-dlp==2023.12.30
+spotipy==2.23.0
+
+# Dependencies for spotipy
+requests>=2.25.0
+urllib3>=1.26.0,<3.0.0
+
+# Development dependencies (optional)
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.9.1
+flake8==6.1.0
