@@ -24,10 +24,10 @@ commands
 
 DOWNLOADING
 - Download // D [YT link]    -downloads a YT song if its not private
-**RECOMENDED**- Paste // P    -downloads from wathever link you have copied, works on spotify and YT
+- **RECOMENDED**- Paste // P    -downloads from wathever link you have copied, works on spotify and YT
 - Download_spotify // DS [Spotify link]    -downloads any list // song from spotify
 - Cancel // C    -cancels the current download
-**BETA** - Search // sch    -searchs a song on youtube by name, with a - you can separate artist from song
+- **BETA** - Search // sch    -searchs a song on youtube by name, with a - you can separate artist from song
 
 
 MANAGING
