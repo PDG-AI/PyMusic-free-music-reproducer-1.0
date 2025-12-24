@@ -1,24 +1,31 @@
-# PyMusic
+# PyMusic mobile
 A simple music reproducer based on terminal and commands, just a simple project, dont expect too much
 
 
 -------------------------------------------------------------------------------------------------------
 
 how to use
-download python (i used python 3.11.9 (i think, idk (shouldnt matter)))
-run python -m venv [venv_name]
-run .\venv_name\scripts\activate
-run pip install -r requirements.txt
+this is a mobile port, with changes to work on mobile devices with termux instaled (no root needed), will work when the phone is suspended or when you open any other app, even ones that doesnt let spotify work, like warthunder mobile, genshin etc, sometimes some commands break, like passing songs, wich can make two songs sound a the same time, and sometimes you cant see what you are typing
 
-go to spotify and idk how get your spotify client ID and secret ID and just put em on the config.py (idk why i made it a .py instead of .json or .txt, but yk)
+step 1: install termux from F-roid (the .apk) if you cant, use the Google play Termux, but might cause problems
+step 2: execute termux and run
+- pkg install python MPV (may also need FFmpeg)
+step 3: download the repo.zip and put it on the Termux files, unzip it
+step 4: navigate to the folder with the termux terminal (usually just "cd PyMusic")
+step 5: execute
+nano config.py (to change your spotify APIs)
+nano password.py (to change your password)
+step 6: do a "python main.py" and start hearing songs
 
-finally run py main.py (will run if it doesnt just explode into a fucking fireball of errors)
+HOW TO DOWNLOAD SONGS MANUALLY
+rn there is no automated way, just do it the old way, put the .mp3 files you have on the /songs folder on the mobile phone, trought the mobile file manager, it doesnt show on PCs, then on metadata.json add
 
+  "**file_name**": {
+    "title": "**song_name**",
+    "added_date": "**this is not important, just leave a random date, for example, 2025-09-11 09:37:27**"
+  },
 
-if py or pip doesnt work, try pip3 and python or python3
-
-if there is some problem, send feedback to the git repository
-
+then you can add it to any list with the command, but instead of an ID, you have to add it with the file_name
 
 commands
 
