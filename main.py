@@ -1,7 +1,6 @@
 import os
 import json
 import random
-import pygame
 import pyperclip
 import yt_dlp
 import time
