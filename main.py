@@ -10,15 +10,50 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from password import ADMIN_PASSWORD
 from config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, DEFAULT_VOLUME
 from downloader import SmartDownloader
-
 # Obtener la ruta base del proyecto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+import subprocess
+import signal
+
+class MPVMusic:
+    def __init__(self):
+        self.proc = None
+        self.volume = 100
+
+    def load(self, path):
+        self.path = path
+
+    def play(self):
+        self.stop()
+        self.proc = subprocess.Popen([
+            "mpv",
+            "--no-video",
+            f"--volume={self.volume}",
+            self.path
+        ])
+
+    def stop(self):
+        if self.proc and self.proc.poll() is None:
+            self.proc.send_signal(signal.SIGTERM)
+            self.proc = None
+
+    def get_busy(self):
+        return self.proc and self.proc.poll() is None
+
+    def set_volume(self, vol):
+        self.volume = int(vol * 100)
+
+class FakeMixer:
+    music = MPVMusic()
+
+mixer = FakeMixer()
+
+
 class MusicPlayer:
     def __init__(self):
-        pygame.mixer.init()
         self.volume = DEFAULT_VOLUME
-        pygame.mixer.music.set_volume(self.volume)
+        mixer.music.set_volume(self.volume)
         self.current_playlist = []
         self.current_song_index = 0
         self.played_songs = set()
@@ -628,7 +663,7 @@ Comandos disponibles:
     def check_song_end(self):
         """Verifica si la canción actual ha terminado y reproduce la siguiente"""
         while self.is_playing:
-            if not pygame.mixer.music.get_busy() and self.current_playlist:
+            if not mixer.music.get_busy() and self.current_playlist:
                 self.play_next_song()
             time.sleep(1)  # Verificar cada segundo
 
@@ -646,8 +681,8 @@ Comandos disponibles:
         self.played_songs.add(next_song)
         
         try:
-            pygame.mixer.music.load(os.path.join(self.songs_dir, f"{next_song}.mp3"))
-            pygame.mixer.music.play()
+            mixer.music.load(os.path.join(self.songs_dir, f"{next_song}.mp3"))
+            mixer.music.play()
             title = self.get_song_title(next_song)
             print(f"Reproduciendo: {title}")
         except Exception as e:
@@ -663,8 +698,8 @@ Comandos disponibles:
             
             # Iniciar reproducción
             self.is_playing = True
-            pygame.mixer.music.load(os.path.join(self.songs_dir, f"{song_id}.mp3"))
-            pygame.mixer.music.play()
+            mixer.music.load(os.path.join(self.songs_dir, f"{song_id}.mp3"))
+            mixer.music.play()
             title = self.get_song_title(song_id)
             print(f"Reproduciendo: {title}")
             
@@ -684,7 +719,7 @@ Comandos disponibles:
             volume = min(volume, 3.0)
             if 0 <= volume <= 3.0:
                 self.volume = volume
-                pygame.mixer.music.set_volume(volume)
+                mixer.music.set_volume(volume)
                 print(f"Volumen ajustado a {int(volume * 100)}%")
             else:
                 print("El volumen debe estar entre 0 y 50")
@@ -747,7 +782,7 @@ Comandos disponibles:
             self.is_playing = False
             if self.check_thread and self.check_thread.is_alive():
                 self.check_thread.join()
-            pygame.mixer.music.stop()
+            mixer.music.stop()
             self.current_playlist = []
             self.played_songs.clear()
             print("Reproducción detenida")
