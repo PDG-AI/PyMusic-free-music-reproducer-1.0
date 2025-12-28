@@ -72,6 +72,7 @@ KNOWLEDGE
 - Songs // SH    -shows all the songs with their song_id
 - Lists // L    -shows all the lists with their list_id
 - showlist // SL [list_id]    -shows the content of the list
+- stats    -shows your "app" statistics
 
 
 OTHERS
@@ -107,6 +108,7 @@ available commands:
 - Search/Sch - name search on youtube
 - ADF - add a song from a file
 - Pause/Resume - pause or resume the current song
+- stats - shows your app stats
 -----------------------------------------------------------------------------------
 
 
