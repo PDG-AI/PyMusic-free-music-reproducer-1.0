@@ -34,6 +34,12 @@ class MusicPlayer:
         self.cancel_download = False
         self.stats = UserStats()  # Inicializar estadísticas
         
+        # Información para Streamlabs
+        self.current_song_id = None
+        self.current_song_title = None
+        self.current_song_duration = 0
+        self.current_playlist_name = None
+        
         # Crear directorios necesarios
         self.songs_dir = os.path.join(BASE_DIR, "Songs")
         self.lists_dir = os.path.join(BASE_DIR, "Lists")
@@ -485,6 +491,22 @@ available commands:
             return f"Canción {song_id}"
         except:
             return f"Canción {song_id}"
+    
+    def get_song_duration(self, song_id):
+        """Obtiene la duración de una canción en segundos"""
+        try:
+            song_path = os.path.join(self.songs_dir, f"{song_id}.mp3")
+            if os.path.exists(song_path):
+                try:
+                    import mutagen
+                    audio = mutagen.File(song_path, easy=True)
+                    if audio:
+                        return int(audio.info.length)
+                except:
+                    pass
+            return 0
+        except:
+            return 0
 
     def download_youtube_video(self, video_url):
         try:
@@ -735,6 +757,7 @@ available commands:
                 playlist = json.load(f)
             
             self.current_playlist = playlist["songs"]
+            self.current_playlist_name = playlist["name"]
             self.played_songs = set()
             print(f"Reproduciendo lista: {playlist['name']}")
             
@@ -780,6 +803,13 @@ available commands:
             pygame.mixer.music.load(os.path.join(self.songs_dir, f"{next_song}.mp3"))
             pygame.mixer.music.play()
             title = self.get_song_title(next_song)
+            duration = self.get_song_duration(next_song)
+            
+            # Actualizar información para Streamlabs
+            self.current_song_id = next_song
+            self.current_song_title = title
+            self.current_song_duration = duration
+            
             self.stats.increment("songs_played")
             print(f"Reproduciendo: {title}")
         except Exception as e:
@@ -798,6 +828,14 @@ available commands:
             pygame.mixer.music.load(os.path.join(self.songs_dir, f"{song_id}.mp3"))
             pygame.mixer.music.play()
             title = self.get_song_title(song_id)
+            duration = self.get_song_duration(song_id)
+            
+            # Actualizar información para Streamlabs
+            self.current_song_id = song_id
+            self.current_song_title = title
+            self.current_song_duration = duration
+            self.current_playlist_name = None  # No hay playlist cuando se reproduce una canción individual
+            
             print(f"Reproduciendo: {title}")
             
             # Iniciar el hilo de verificación
@@ -1039,6 +1077,16 @@ if __name__ == "__main__":
     print("Write 'Help' too see ALL available commands")
     print("Tip: copy any URL (youtube or spotify) and write Paste to process it and download that song automatically")
     print("Remember, not all songs are available on youtube to download, unless you film them with OBS and export to .mp3......")
+    
+    # Iniciar servidor Streamlabs en un hilo separado
+    try:
+        from integrations.streamlabs.server import start_server
+        streamlabs_thread = threading.Thread(target=start_server, args=(player, 8765), daemon=True)
+        streamlabs_thread.start()
+        print("\n✓ Servidor Streamlabs iniciado en http://localhost:8765")
+        print("  Accede al overlay en: http://localhost:8765/")
+    except Exception as e:
+        print(f"\n⚠ Advertencia: No se pudo iniciar el servidor Streamlabs: {e}")
     
     while True:
         try:
