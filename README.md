@@ -1,16 +1,24 @@
 # PyMusic 1.0 update
 A simple music reproducer based on terminal and commands, just a simple project, dont expect too much
 
-previous version: 1.1.0-stats
+current version (executable file): 1.1.0-stats
 added some statistics shit so u can see how much time u have been damaging you ears and loosing your time on PyMusic
 
-current version: 1.2.0-integrations_beta
-added the base for the future integrations functions, you will be able to connect PyMusic to other apps such as Discord and OBS, the only one working right now is the integrated StreamLabs integration (wtf was that phrase?) wich sends the current song and list playing to a server wich you can put on Streamlabs with that navigator or explorer shit, MAY also work on OBS, not tested, server SHOULD be http://localhost:8765
+-----------------------------------
+
+current version (executable beta): 1.1.0-stats #not more advanced right now, the 1.2.0 will be first here
+
+-----------------------------------
+
+current version (source code): 1.2.1-integrations_stable
+now we got integrations, wich are basically integrations to other apps, right now there is only the streamlabs one, wich should also work for OBS and any other thing that uses web resource stream, and im not going to make a lot of integrations, cause i will focus on updating the base app, BUT YOU CAN, on the 1.2.1 i added the posibility to create your own integrations, see the example integration to know more, DO NOT USE STREAMLABS INTEGRATION AS AN EXAMPLE, PLEASE, IT IS NOT REALLY A NORMAL INTEGRATION, IT HAS GOT HARDCODED PARTS ON main.py, USE ONLY THE EXAMPLE INTEGRATION, the integrations system should be pretty easy to understand, to share them, zip the integration and upload it to drive, mediafire, or smth, idk, feel free to share your integrations with other people
+
+about the streamlabs integration (wich should work for OBS), start PyMusic, and if you havent touched anything on the integrations folder, a server should start on http://localhost:8765/, put that as a web resource on OBS or StreamLabs,  500x150p, put a chroma key to make the black background disapear and should be ready to show wich song is starting to play on your streams :D 
 
 -------------------------------------------------------------------------------------------------------
 
 how to use
-download python (i used python 3.11.9 (i think, idk (shouldnt matter)))
+download python (i used python 3.11.9 (i think, idk (shouldnt matter anyways)))
 run python -m venv [venv_name]
 run .\venv_name\scripts\activate
 run pip install -r requirements.txt
