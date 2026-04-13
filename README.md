@@ -6,11 +6,11 @@ added some statistics shit so u can see how much time u have been damaging you e
 
 -----------------------------------
 
-current version (executable beta (IN PROGRESS OF FIX)): 1.3.0-DiscordPresence #not more advanced right now, the 1.2.0 will be first here
+current version (executable beta (IN PROGRESS OF FIX)): 1.3.X-DiscordPresence # is going to be fixed as soon as posible, will try to have it ready for the 1.3.1 or 1.3.2
 
 -----------------------------------
 
-current version (source code): 1.3.0-DiscordPresence
+current version (source code (LATEST)): 1.3.0-DiscordPresence
 now there is a discord integration, when you start PyMusic with discord desktop started, if you have the discord app in your account (https://discord.com/oauth2/authorize?client_id=1492995111682834646) it will be shown, indicating current song, reproduction time, and if it is stopped or not
 
 other changes->
