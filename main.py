@@ -6,13 +6,17 @@ import pyperclip
 import yt_dlp
 import time
 import threading
+import asyncio
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 from password import ADMIN_PASSWORD
 from config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, DEFAULT_VOLUME
 from downloader import SmartDownloader
 from user_stats import UserStats  # <-- Añade esta línea
+from spotdl import Spotdl  # Asegúrate de tener spotdl instalado y configurado correctamente
+from pypresence import Presence
 
+            
 # Obtener la ruta base del proyecto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,7 +24,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class MusicPlayer:
     def __init__(self):
-        pygame.mixer.init()
+        # Cargar configuración de dispositivo de audio
+        self.audio_device = self.load_audio_device_config()
+        
+        self.debug = True
+        
+        # Inicializar pygame mixer con el dispositivo configurado
+        self.init_audio_device()
+        
         self.volume = DEFAULT_VOLUME
         pygame.mixer.music.set_volume(self.volume)
         self.is_paused = False
@@ -53,10 +64,8 @@ class MusicPlayer:
         
         # Diccionario de comandos con sus atajos
         self.commands = {
-            "download": self.download_youtube_video,
-            "d": self.download_youtube_video,
-            "download_spotify": self.download_spotify_playlist,
-            "ds": self.download_spotify_playlist,
+            "download": self.download_spotify_track_new,
+            "d": self.download_spotify_track_new,
             "create": self.create_playlist,
             "cl": self.create_playlist,
             "delete": self.delete_playlist,
@@ -71,7 +80,7 @@ class MusicPlayer:
             "l": self.show_lists,
             "songs": self.show_songs,
             "sh": self.show_songs,
-            "paste": self.paste_url,
+            "paste_osoodsodsds": self.paste_url,
             "volume": self.set_volume,
             "v": self.set_volume,
             "pass": self.play_next_song,
@@ -88,8 +97,6 @@ class MusicPlayer:
             "e": self.edit_playlist,
             "showlist": self.show_list_content,
             "sl": self.show_list_content,
-            "search": self.search_song,
-            "sch": self.search_song,
             "adf": self.add_song_from_file,
             "pause": self.toggle_pause,
             "resume": self.resume_playback,
@@ -98,6 +105,8 @@ class MusicPlayer:
             "rs": self.rename_song,
             "rename_list": self.rename_playlist,
             "rl": self.rename_playlist,
+            "changeoutput": self.change_audio_output,
+            "co": self.change_audio_output,
         }
         
         # Inicializar cliente de Spotify
@@ -109,6 +118,53 @@ class MusicPlayer:
         except:
             print("Advertencia: No se pudo inicializar Spotify. Asegúrate de tener las credenciales configuradas en config.py")
             self.spotify = None
+        
+    def download_spotify_track_new(self, spotify_url):
+        try:
+            self.downloading = True
+            self.cancel_download = False
+            self.spotdl_client = Spotdl(client_id="", client_secret="")
+
+            # 1. Obtener metadatos de la canción primero
+            song_obj = self.spotdl_client.search([spotify_url])[0]
+            temp_filename = f"{song_obj.song_id}.mp3" # ID interno de Spotify para el temporal
+            temp_path = os.path.join(self.songs_dir, temp_filename)
+
+            # 2. Descargar
+            # spotDL maneja su propio sistema de descarga que garantiza audio funcional para PyGame
+            print(f"Descargando: {song_obj.name} - {song_obj.artist}")
+            
+            # download() devuelve la ruta del archivo descargado
+            # Nota: spotDL es síncrono por defecto, si necesitas progress_hook 
+            # específico debes manejarlo mediante eventos de spotdl.
+            path, song = self.spotdl_client.download(song_obj)
+            
+            if self.cancel_download:
+                if os.path.exists(path):
+                    os.remove(path)
+                return None
+
+            # 3. Integración con tu sistema de IDs internos
+            new_id = self.get_next_song_id()
+            new_path = os.path.join(self.songs_dir, f"{new_id}.mp3")
+            
+            # Mover y renombrar desde la ruta que generó spotDL a tu ruta final
+            os.rename(path, new_path)
+            
+            # 4. Guardar metadatos usando el nombre real de Spotify
+            title = f"{song_obj.artist} - {song_obj.name}"
+            self.save_song_metadata(new_id, title)
+            
+            print(f"Canción descargada con ID: {new_id}")
+            time.sleep(1)
+            return new_id
+
+        except Exception as e:
+            print(f"Error al descargar desde Spotify: {e}")
+            return None
+        finally:
+            self.downloading = False
+            self.cancel_download = False
         
     def search_song(self, *args):
         """Busca y descarga una canción por nombre"""
@@ -259,11 +315,21 @@ class MusicPlayer:
         try:
             if not command.strip():
                 return
-                
-            parts = command.lower().split()
-            cmd = parts[0]
-            args = parts[1:] if len(parts) > 1 else []
-            
+
+            # use shlex so quoted arguments (paths with spaces) are kept intact
+            import shlex
+            try:
+                parts = shlex.split(command)
+            except Exception:
+                # fallback to simple split if shlex fails for whatever reason
+                parts = command.split()
+
+            if not parts:
+                return
+
+            cmd = parts[0].lower()
+            args = parts[1:]
+
             if cmd in self.commands:
                 return self.commands[cmd](*args)
             else:
@@ -303,6 +369,7 @@ available commands:
 - stats - shows your app stats
 - Rename_Song/RS [song_id] [new_name] - rename a song
 - Rename_List/RL [list_id] [new_name] - rename a playlist
+- ChangeOutput/CO [device_name] - change audio output device (use "default" for default device)
         """)
 
     def show_lists(self):
@@ -1209,7 +1276,10 @@ available commands:
             self.current_song_duration = duration
             
             self.stats.increment("songs_played")
+            print("")
             print(f"Reproduciendo: {title}")
+            print("")
+            print("command >")
             
             # Disparar evento de cambio de canción
             if self.integration_manager and old_song_id != next_song:
@@ -1248,7 +1318,10 @@ available commands:
             self.current_song_duration = duration
             self.current_playlist_name = None  # No hay playlist cuando se reproduce una canción individual
             
+            print("")
             print(f"Reproduciendo: {title}")
+            print("")
+            print("command >")
             
             # Disparar evento de cambio de canción
             if self.integration_manager and old_song_id != song_id:
@@ -1388,6 +1461,146 @@ available commands:
         self.song_counter["next_id"] += 1
         self.save_song_counter()
         return song_id
+    
+    def load_audio_device_config(self):
+        """Carga la configuración del dispositivo de audio desde un archivo"""
+        try:
+            config_file = os.path.join(BASE_DIR, "audio_config.json")
+            if os.path.exists(config_file):
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    return config.get('audio_device', None)
+        except Exception as e:
+            print(f"Error al cargar configuración de audio: {e}")
+        return None
+    
+    def save_audio_device_config(self, device_name):
+        """Guarda la configuración del dispositivo de audio en un archivo"""
+        try:
+            config_file = os.path.join(BASE_DIR, "audio_config.json")
+            config = {'audio_device': device_name}
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Error al guardar configuración de audio: {e}")
+    
+    def init_audio_device(self, device_name=None):
+        """Inicializa pygame mixer con el dispositivo de audio especificado"""
+        try:
+            # Cerrar mixer actual si está inicializado
+            if pygame.mixer.get_init():
+                pygame.mixer.quit()
+            
+            # Si no se especifica dispositivo, usar el guardado o None (por defecto)
+            if device_name is None:
+                device_name = self.audio_device
+            
+            # Inicializar mixer con el dispositivo
+            if device_name:
+                try:
+                    pygame.mixer.init(devicename=device_name)
+                    print(f"✓ Dispositivo de audio inicializado: {device_name}")
+                except Exception as e:
+                    print(f"⚠ Error al inicializar dispositivo '{device_name}': {e}")
+                    print("Usando dispositivo por defecto...")
+                    pygame.mixer.init()
+                    self.audio_device = None
+                    self.save_audio_device_config(None)
+            else:
+                pygame.mixer.init()
+                print("✓ Dispositivo de audio: Por defecto")
+        except Exception as e:
+            print(f"Error al inicializar dispositivo de audio: {e}")
+            pygame.mixer.init()
+    
+    def get_audio_devices(self):
+        """Obtiene la lista de dispositivos de audio disponibles"""
+        devices = []
+        try:
+            # Intentar obtener dispositivos usando pygame
+            # Nota: pygame.mixer.get_device() puede no estar disponible en todas las versiones
+            # Por ahora, usaremos un método alternativo
+            
+            # En Windows, podemos intentar obtener dispositivos usando índices
+            # Primero guardamos el estado actual
+            current_volume = self.volume if hasattr(self, 'volume') else DEFAULT_VOLUME
+            was_playing = self.is_playing if hasattr(self, 'is_playing') else False
+            
+            # Probar dispositivos comunes
+            test_devices = [None]  # Dispositivo por defecto siempre disponible
+            
+            # Intentar obtener dispositivos del sistema
+            # En Windows, los dispositivos pueden tener nombres como "Speakers", "Headphones", etc.
+            # Por ahora, permitiremos que el usuario especifique el nombre directamente
+            
+            return test_devices
+        except Exception as e:
+            print(f"Error al obtener dispositivos de audio: {e}")
+            return [None]
+    
+    def change_audio_output(self, *args):
+        """Cambia el dispositivo de salida de audio"""
+        try:
+            if not args:
+                print("Uso: changeoutput <nombre_dispositivo>")
+                print("Ejemplo: changeoutput Speakers")
+                print("Ejemplo: changeoutput Headphones")
+                print("Ejemplo: changeoutput default (para usar el dispositivo por defecto)")
+                print("\nNota: El nombre del dispositivo debe coincidir exactamente con el nombre del dispositivo en tu sistema.")
+                print("Para ver los dispositivos disponibles, revisa la configuración de sonido de Windows.")
+                return False
+            
+            device_name = " ".join(args)
+            
+            # Si es "default" o "none", usar None
+            if device_name.lower() in ['default', 'none', '']:
+                device_name = None
+            
+            # Guardar el volumen actual
+            current_volume = self.volume
+            
+            # Detener la reproducción si está activa
+            was_playing = self.is_playing
+            current_song = self.current_song_id if was_playing else None
+            if was_playing:
+                self.stop_playback()
+            
+            # Cambiar el dispositivo
+            old_device = self.audio_device
+            self.audio_device = device_name
+            self.init_audio_device(device_name)
+            
+            # Verificar que el mixer se inicializó correctamente
+            if not pygame.mixer.get_init():
+                print("⚠ Error: No se pudo inicializar el dispositivo de audio")
+                # Intentar restaurar el dispositivo anterior
+                self.audio_device = old_device
+                self.init_audio_device(old_device)
+                return False
+            
+            # Restaurar el volumen
+            self.volume = current_volume
+            pygame.mixer.music.set_volume(self.volume)
+            
+            # Guardar la configuración
+            self.save_audio_device_config(device_name)
+            
+            if device_name:
+                print(f"✓ Dispositivo de audio cambiado a: {device_name}")
+            else:
+                print(f"✓ Dispositivo de audio cambiado a: Por defecto")
+            
+            # Si estaba reproduciendo, informar que necesita reiniciar la reproducción
+            if was_playing and current_song:
+                print("ℹ Nota: La reproducción se detuvo. Usa 'play' o 'play_song' para continuar.")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error al cambiar dispositivo de audio: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
 
     def edit_playlist(self, playlist_id, action, *song_ids):
         """Edita una lista de reproducción existente"""
@@ -1586,9 +1799,60 @@ available commands:
         except Exception as e:
             print(f"Error al renombrar la lista: {e}")
             return False
+        
+    def update_discord_app(self):
+        """Esta función se encargará de Discord en un hilo separado"""
+        client_id = '1492995111682834646'
+        rpc = Presence(client_id)
+        
+        try:
+            rpc.connect()
+            print("\nDiscord RPC conectado en segundo plano.")
+            
+            while True:
+                # Actualizamos el estado con la canción actual
+                rpc.update(
+                    state=f"Listening to: {self.current_song_title}",
+                    details=f"Paused: {self.is_paused}", # Puedes usar variables de tu clase
+                    large_image="logo",
+                    large_text="PyMusic Player",
+                )
+                if self.debug == True:
+                    print("\nactualizado\n")
+                time.sleep(5) # Discord solo permite actualizar cada 15 seg
+        except Exception as e:
+            print(f"Error en Discord RPC: {e}")
+
+    def start(self):
+        # 1. Iniciamos Discord en un hilo "daemon" (se cierra si cierras la app)
+        discord_thread = threading.Thread(target=self.update_discord_app, daemon=True)
+        discord_thread.start()
+
+        # 2. Aquí sigue el código de tu reproductor (el que bloquea la pantalla o interfaz)
+        print("\nIniciando reproductor de música...")
+
+
+#    DiscordRichPresence discordPresence;
+#    memset(&discordPresence, 0, sizeof(discordPresence));
+#    discordPresence.state = "Hearing to music";
+#    discordPresence.details = "https://github.com/PDG-AI/PyMusic-free-music-reproducer-1.0";
+#    discordPresence.startTimestamp = 1507665886;
+#    discordPresence.endTimestamp = 1507665886;
+#    discordPresence.largeImageKey = "logo";
+#    discordPresence.largeImageText = "PyMusic";
+#    discordPresence.smallImageText = "Rogue - Level 100";
+#    discordPresence.partyId = "ae488379-351d-4a4f-ad32-2b9b01c91657";
+#    discordPresence.partySize = 1;
+#    discordPresence.partyMax = 1;
+#    discordPresence.joinSecret = "MTI4NzM0OjFpMmhuZToxMjMxMjM= ";
+#    Discord_UpdatePresence(&discordPresence);
+
+
+
 
 if __name__ == "__main__":
     player = MusicPlayer()
+    player.start()
     print("PyMusic - A local music reproducer, for free")
     print("Write 'Help' too see ALL available commands")
     print("Tip: copy any URL (youtube or spotify) and write Paste to process it and download that song automatically")
