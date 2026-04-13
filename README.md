@@ -1,12 +1,12 @@
-# PyMusic 1.2 update
+# PyMusic 1.3.0 update
 A simple music reproducer based on terminal and commands, just a simple project, dont expect too much
 
-current version (executable file stable): 1.1.0-stats
+current version (executable file stable): 1.1.2-stats
 added some statistics shit so u can see how much time u have been damaging you ears and loosing your time on PyMusic
 
 -----------------------------------
 
-current version (executable beta): 1.3.0-DiscordPresence #not more advanced right now, the 1.2.0 will be first here
+current version (executable beta (IN PROGRESS OF FIX)): 1.3.0-DiscordPresence #not more advanced right now, the 1.2.0 will be first here
 
 -----------------------------------
 
