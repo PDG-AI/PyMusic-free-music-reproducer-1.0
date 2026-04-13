@@ -1,16 +1,24 @@
-# PyMusic 1.0 update
+# PyMusic 1.2 update
 A simple music reproducer based on terminal and commands, just a simple project, dont expect too much
 
-current version (executable file): 1.1.0-stats
+current version (executable file stable): 1.1.0-stats
 added some statistics shit so u can see how much time u have been damaging you ears and loosing your time on PyMusic
 
 -----------------------------------
 
-current version (executable beta): 1.1.0-stats #not more advanced right now, the 1.2.0 will be first here
+current version (executable beta): 1.3.0-DiscordPresence #not more advanced right now, the 1.2.0 will be first here
 
 -----------------------------------
 
-current version (source code): 1.2.1-integrations_stable
+current version (source code): 1.3.0-DiscordPresence
+now there is a discord integration, when you start PyMusic with discord desktop started, if you have the discord app in your account (https://discord.com/oauth2/authorize?client_id=1492995111682834646) it will be shown, indicating current song, reproduction time, and if it is stopped or not
+
+other changes->
+>alternative downloads, have added some more alternative sources, current used commands are just ADF (to import from folders, zips or files), Sch (to search on youtube by name), DS [spotify link] (to download from spotify, both playlists and individual songs), D [youtube link] (to download from youtube) - as all downloads (except ADF as it is import) use youtube, most songs are not going to be downloaded because of the copyrights on youtube, you can use SpotDown and import the folder with the music files
+
+------------------------------------------------Changelog (read this if you get errors)
+
+1.2.X:
 now we got integrations, wich are basically integrations to other apps, right now there is only the streamlabs one, wich should also work for OBS and any other thing that uses web resource stream, and im not going to make a lot of integrations, cause i will focus on updating the base app, BUT YOU CAN, on the 1.2.1 i added the posibility to create your own integrations, see the example integration to know more, DO NOT USE STREAMLABS INTEGRATION AS AN EXAMPLE, PLEASE, IT IS NOT REALLY A NORMAL INTEGRATION, IT HAS GOT HARDCODED PARTS ON main.py, USE ONLY THE EXAMPLE INTEGRATION, the integrations system should be pretty easy to understand, to share them, zip the integration and upload it to drive, mediafire, or smth, idk, feel free to share your integrations with other people
 
 about the streamlabs integration (wich should work for OBS), start PyMusic, and if you havent touched anything on the integrations folder, a server should start on http://localhost:8765/, put that as a web resource on OBS or StreamLabs,  500x150p, put a chroma key to make the black background disapear and should be ready to show wich song is starting to play on your streams :D 
