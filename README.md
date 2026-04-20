@@ -1,12 +1,14 @@
 # PyMusic 1.3.0 update
 A simple music reproducer based on terminal and commands, just a simple project, dont expect too much
 
+**no ads or payment required, open source, you can do wathever changes you want to the code, open source, but please give some credit for it so other people can use this too**
+
 current version (executable file stable): 1.1.2-stats
 added some statistics shit so u can see how much time u have been damaging you ears and loosing your time on PyMusic
 
 -----------------------------------
 
-current version (executable beta (IN PROGRESS OF FIX)): 1.3.X-DiscordPresence # is going to be fixed as soon as posible, will try to have it ready for the 1.3.1 or 1.3.2
+current version (executable beta): 1.3.0.b-DiscordPresence #the same as the source code update is, will work the same, may sometimes crash as python is not really made for exes, if you get any errors, share them and ill try to fix them, if you get many errors, you can switch to the executable file stable wich shouldnt crash
 
 -----------------------------------
 
@@ -135,4 +137,4 @@ available commands:
 
 i made this shit over like 2 years, like one weekend, then i forget, and one month after that, i find it, so a lot of things dont make any f sense, like sometimes you need to use ID+L for list_id but sometimes just ID... idfc
 
-no ads or payment required, open source, stop using fuckify, i mean, spotify
+
