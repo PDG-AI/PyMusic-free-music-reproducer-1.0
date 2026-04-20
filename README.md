@@ -108,7 +108,8 @@ available commands:
 - Download/D [url_youtube] - downloads a youtube video
 - Download_Spotify/DS [url_playlist] - downloads an spotify playlist (some songs may be unavailable on youtube)
 - Create/CL [list_name] [id1] [id2] ... - creates a new list
-  Ejemplo: Create ARandomList 1 2 5
+  example: Create ARandomList 1 2 5
+  that will create a list named "ARandomList" with songs 1, 2 and 5
 - Edit/E [list_id] add/remove [id1] [id2] ... - Edit an alr existing list
   examples:
   - Edit 1L add 6 7 8
@@ -120,8 +121,8 @@ available commands:
 - Songs/SH - shows all available songs
 - ShowList/SL [list_id] - shows a list's content
 - Paste/PA - Paste whathever link you have copied and download the song
-- Volume/V [0-300] - adjust volume (max 300% (i think max is actually 100))
-- Pass/NEXT/N - Pasa a la siguiente canción
+- Volume/V [0-300] - adjust volume (max 300% (i think it doesnt work and max is actually 100))
+- Pass/NEXT/N - skips current song
 - Check/CH [list_id] - verify list integrity
 - Stop/S - stop current playing song
 - Cancel/C - stops current download
@@ -134,7 +135,5 @@ available commands:
 
 
 -SIDE NOTES
-
-i made this shit over like 2 years, like one weekend, then i forget, and one month after that, i find it, so a lot of things dont make any f sense, like sometimes you need to use ID+L for list_id but sometimes just ID... idfc
 
 
